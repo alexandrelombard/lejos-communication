@@ -36,26 +36,53 @@ public final class BroadcastManager {
     private int port = 4242;
     // endregion
 
-    private Runnable listeningTask;
-
     /** Private constructor (singleton pattern) */
-    private BroadcastManager() {
-        this.listeningTask = new Runnable() {
+    private BroadcastManager(boolean autostart) {
+        if(autostart) {
+            start();
+        }
+    }
+
+    /**
+     * Gets the instance of the broadcast manager
+     * @return the instance of the broadcast manager
+     */
+    public static BroadcastManager getInstance() {
+        return getInstance(true);
+    }
+
+    /**
+     * Gets the instance of the broadcast manager.
+     * @param autostart if it is the first call, setting this to <code>true</code> will auto-start the reception
+     *                  of messages
+     * @return the instance of the broadcast manager
+     */
+    public static BroadcastManager getInstance(boolean autostart) {
+        if(instance == null)
+            instance = new BroadcastManager(autostart);
+        return instance;
+    }
+
+    /**
+     * Starts receiving message (usually not called manually)
+     */
+    public void start() {
+        final Runnable listeningTask = new Runnable() {
             @Override
             public void run() {
                 try {
                     final DatagramSocket socket = new DatagramSocket(5001, InetAddress.getByName("0.0.0.0"));
                     final byte[] buffer = new byte[10 * 1024];
 
-                    while(true) {
-                        final DatagramPacket packet = new DatagramPacket(buffer,0, buffer.length);
+                    while (true) {
+                        final DatagramPacket packet = new DatagramPacket(buffer, 0, buffer.length);
                         try {
                             socket.receive(packet);
 
                             final ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(buffer));
                             final Object object = ois.readObject();
 
-                            if(object instanceof Message) {
+                            if (object instanceof Message) {
                                 fireMessageReceived((Message) object);
                             }
                             // Note: Ignoring unsupported messages
@@ -74,17 +101,14 @@ public final class BroadcastManager {
             }
         };
 
-        EXECUTOR_SERVICE.submit(this.listeningTask);
+        EXECUTOR_SERVICE.submit(listeningTask);
     }
 
     /**
-     * Gets the instance of the broadcast manager
-     * @return the instance of the broadcast manager
+     * Stops receiving messages
      */
-    public static BroadcastManager getInstance() {
-        if(instance == null)
-            instance = new BroadcastManager();
-        return instance;
+    public void stop() {
+        EXECUTOR_SERVICE.shutdownNow();
     }
 
     /**
@@ -158,7 +182,7 @@ public final class BroadcastManager {
      * Emits the reception of a message
      * @param message the received message
      */
-    protected void fireMessageReceived(Message message) {
+    private void fireMessageReceived(Message message) {
         final List<MessageEventListener> topicListeners = listeners.get(message.getTopic());
 
         if(topicListeners != null) {
