@@ -71,7 +71,7 @@ public final class BroadcastManager {
             @Override
             public void run() {
                 try {
-                    final DatagramSocket socket = new DatagramSocket(5001, InetAddress.getByName("0.0.0.0"));
+                    final DatagramSocket socket = new DatagramSocket(port, InetAddress.getByName("0.0.0.0"));
                     final byte[] buffer = new byte[10 * 1024];
 
                     while (true) {
@@ -112,6 +112,14 @@ public final class BroadcastManager {
     }
 
     /**
+     * Restarts the reception of messages
+     */
+    public void restart() {
+        stop();
+        start();
+    }
+
+    /**
      * Gets the port used for broadcast communication
      * @return the UDP port
      */
@@ -125,6 +133,7 @@ public final class BroadcastManager {
      */
     public void setPort(int port) {
         this.port = port;
+        restart();
     }
 
     /**
