@@ -53,4 +53,13 @@ public class VehicleData implements Serializable {
     public int getLaneId() {
         return laneId;
     }
+
+    @Override
+    public String toString() {
+        return "VehicleData{" +
+                "id=" + id +
+                ", position=" + position +
+                ", laneId=" + laneId +
+                '}';
+    }
 }

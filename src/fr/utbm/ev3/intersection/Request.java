@@ -40,6 +40,14 @@ public class Request implements Serializable {
         return vehicleData;
     }
 
+    @Override
+    public String toString() {
+        return "Request{" +
+                "requestType=" + requestType +
+                ", vehicleData=" + vehicleData +
+                '}';
+    }
+
     /**
      * Represents a type of request
      */

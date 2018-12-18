@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 /**
  * Intersection manager, in charge of receiving requests and emitting the right-of-way
@@ -20,7 +21,9 @@ public final class IntersectionManager {
     public static final int PERIOD_MS = 1000;
     public static final String REQUESTS_TOPIC = "REQUESTS";
     public static final String PRESENCE_LIST_TOPIC = "PRESENCE_LIST";
-    private static final ScheduledExecutorService EXECUTOR_SERVICE = Executors.newSingleThreadScheduledExecutor();
+
+    private static final Logger LOG = Logger.getLogger(IntersectionManager.class.getName());
+    private ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 
     private static IntersectionManager instance;
 
@@ -37,6 +40,8 @@ public final class IntersectionManager {
 
                     final VehicleData vehicleData = request.getVehicleData();
                     final int index = indexOf(vehicleData);
+
+                    LOG.info(request.toString());
 
                     switch (request.getRequestType()) {
                         // Note: ENTER and UPDATE don't need to be managed differently
@@ -61,8 +66,19 @@ public final class IntersectionManager {
             }
         });
 
+        // Start the emission service (auto-start)
+        start();
+    }
+
+    /**
+     * Starts the service
+     */
+    public void start() {
+        // Stops currently running thread
+        stop();
+
         // Schedules the task which will regularly emit the presence list
-        EXECUTOR_SERVICE.scheduleAtFixedRate(new Runnable() {
+        executorService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -72,6 +88,22 @@ public final class IntersectionManager {
                 }
             }
         }, 0, PERIOD_MS, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * Stops the service
+     */
+    public void stop() {
+        executorService.shutdown();
+        executorService = Executors.newSingleThreadScheduledExecutor();
+    }
+
+    /**
+     * Restart the service
+     */
+    public void restart() {
+        stop();
+        start();
     }
 
     /**

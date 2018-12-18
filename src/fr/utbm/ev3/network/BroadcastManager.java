@@ -16,9 +16,6 @@ public final class BroadcastManager {
     /** The address used for broadcast */
     private static final InetAddress BROADCAST_ADDRESS;
 
-    /** The executor service for the listening task */
-    private static final ExecutorService EXECUTOR_SERVICE = Executors.newSingleThreadExecutor();
-
     static {
         try {
             BROADCAST_ADDRESS = InetAddress.getByName("255.255.255.255");
@@ -31,6 +28,9 @@ public final class BroadcastManager {
     private static BroadcastManager instance;
 
     private final Map<String, List<MessageEventListener>> listeners = new ConcurrentHashMap<>();
+
+    /** The executor service for the listening task */
+    private ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     // region Configuration
     private int port = 4242;
@@ -101,14 +101,15 @@ public final class BroadcastManager {
             }
         };
 
-        EXECUTOR_SERVICE.submit(listeningTask);
+        executorService.submit(listeningTask);
     }
 
     /**
      * Stops receiving messages
      */
     public void stop() {
-        EXECUTOR_SERVICE.shutdownNow();
+        executorService.shutdownNow();
+        executorService = Executors.newSingleThreadExecutor();
     }
 
     /**
