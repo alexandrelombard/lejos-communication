@@ -28,6 +28,8 @@ public class BroadcastManagerTest {
         });
 
         broadcastManager.publish(new Message("hello", "world".getBytes()));
+        broadcastManager.publish(new Message("hello", "world".getBytes()));
+        broadcastManager.publish(new Message("hello", "world".getBytes()));
     }
 
 }

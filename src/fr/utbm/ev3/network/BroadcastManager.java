@@ -197,7 +197,12 @@ public final class BroadcastManager {
 
         if(topicListeners != null) {
             for(MessageEventListener l : topicListeners) {
-                l.onMessageReceived(message);
+                try {
+                    l.onMessageReceived(message);
+                } catch (Throwable t) {
+                    // Any potential exception is catched here, so bad listeners won't impact the good listeners
+                    t.printStackTrace();
+                }
             }
         }
     }

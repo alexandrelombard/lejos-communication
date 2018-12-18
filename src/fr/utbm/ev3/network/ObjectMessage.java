@@ -51,7 +51,7 @@ public class ObjectMessage<T> extends Message {
             this.object = (T) ois.readObject();
         }
 
-        return null;
+        return this.object;
     }
 
     /**
